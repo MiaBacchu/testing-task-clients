@@ -7,6 +7,8 @@ import Form from './Form';
 import { Link } from "react-router-dom";
 
 const Body = () => {
+  const [errorPhone,setErrorPhone]=useState(false);
+  const [errorEmail,setErrorEmail]=useState(false);
   const [displayBillings,setDisplayBillings]=useState([]);
   const [billings,setBillings]=useState([]);
   const [insertedId,setInsertedId]=useState();
@@ -18,7 +20,7 @@ const Body = () => {
   const ammountRef=useRef();
 
   useEffect(()=>{
-    fetch(`http://localhost:5000/list`)
+    fetch(`https://friendly-parliament-64654.herokuapp.com/list`)
     .then(res=>res.json())
     .then(data=>{
       setBillings(data);
@@ -26,7 +28,7 @@ const Body = () => {
   },[insertedId,page]);
   
   useEffect(()=>{
-    fetch(`http://localhost:5000/billing-list?page=${page}&&size=${10}`)
+    fetch(`https://friendly-parliament-64654.herokuapp.com/billing-list?page=${page}&&size=${10}`)
     .then(res=>res.json())
     .then(data=>{
       setDisplayBillings(data.result);
@@ -59,7 +61,7 @@ const Body = () => {
     const newBilling={
       name,email,phone,ammount
     }
-    fetch('http://localhost:5000/add-billing',{
+    fetch('https://friendly-parliament-64654.herokuapp.com/add-billing',{
       method:'POST',
       headers:{
         'content-type':'application/json'
@@ -68,6 +70,14 @@ const Body = () => {
     })
     .then(res=>res.json())
     .then(data=>{
+      if (errorEmail) {
+        alert('Please input an valid email')
+        return;
+      }
+      if (errorPhone) {
+        alert('phone number must contain 11 character')
+        return;
+      }
       if(data.insertedId){
         alert('user added successfully')
         setInsertedId(data.insertedId);
@@ -77,7 +87,7 @@ const Body = () => {
     e.preventDefault();
   }
   const handleDelete=id=>{
-    const url=`http://localhost:5000/delete-billing/${id}`;
+    const url=`https://friendly-parliament-64654.herokuapp.com/delete-billing/${id}`;
     fetch(url,{
       method:'DELETE'
     })
@@ -85,7 +95,7 @@ const Body = () => {
     .then(data=>{
       if (data.deletedCount>0) {
         alert('deleted successfully')
-        const remaining=billings.filter(billing=>billing._id!==id);
+        const remaining=displayBillings.filter(billing=>billing._id!==id);
         setDisplayBillings(remaining);
       }
     })
@@ -94,6 +104,28 @@ const Body = () => {
     const searchText= e.target.value;
     const matchedBilling= billings.filter(billing=>billing.name.toLowerCase().includes(searchText.toLowerCase()) || billing.email.toLowerCase().includes(searchText.toLowerCase()) ||billing.phone.toLowerCase().includes(searchText.toLowerCase()));
     setDisplayBillings(matchedBilling);
+  }
+  const handlePhone=e=>{
+    const phone=e.target.value;
+    const regex = /^\(?([0-9]{3})\)?[-. ]?([0-9]{4})[-. ]?([0-9]{4})$/;
+    if (regex.test(phone)) {
+      setErrorPhone(false)
+    }
+    else{
+      setErrorPhone(true)
+    }
+  }
+  const handleEmail=e=>{
+    const email=e.target.value;
+    const regex =
+  /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
+
+    if (regex.test(email)) {
+      setErrorEmail(false)
+    }
+    else{
+      setErrorEmail(true)
+    }
   }
   return (
     <Box>
@@ -108,12 +140,12 @@ const Body = () => {
             aria-describedby="modal-modal-description"
           >
           <Box sx={style}>
-            <Form handleSubmit={handleSubmit} nameRef={nameRef} emailRef={emailRef} phoneRef={phoneRef} ammountRef={ammountRef}></Form>
+            <Form handleSubmit={handleSubmit} handlePhone={handlePhone} handleEmail={handleEmail} nameRef={nameRef} emailRef={emailRef} phoneRef={phoneRef} ammountRef={ammountRef} ></Form>
           </Box>
             </Modal>
           </Box>
           <Box sx={{marginTop:'3rem'}}>
-          <table>
+          <table style={{marginLeft:'5rem'}}>
             <tr>
                     <th>Billing ID</th>
                     <th>Full Name</th>

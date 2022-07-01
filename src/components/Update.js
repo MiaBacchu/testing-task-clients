@@ -4,8 +4,9 @@ import Form from './Form';
 import { useParams } from 'react-router'
 
 const Update = () => {
+  const [errorEmail,setErrorEmail]=useState(false);
+    const[errorPhone,seterrorPhonePhone]=useState(false)
     const[billing,setBilling]=useState({})
-    console.log(billing)
     const {id}=useParams()
     const nameRef=useRef();
   const emailRef=useRef();
@@ -21,11 +22,27 @@ const Update = () => {
     const updatedEmail=e.target.value;
     const updatedBilling={name:billing.name,email:updatedEmail,phone:billing.phone,ammount:billing.ammount}
     setBilling(updatedBilling);
+    const regex =
+  /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
+
+    if (regex.test(updatedEmail)) {
+      setErrorEmail(false)
+    }
+    else{
+      setErrorEmail(true)
+    }
   }
   const handlePhone=e=>{
     const updatedPhone=e.target.value;
     const updatedBilling={name:billing.name,email:billing.email,phone:updatedPhone,ammount:billing.ammount}
     setBilling(updatedBilling);
+    const regex = /^\(?([0-9]{3})\)?[-. ]?([0-9]{4})[-. ]?([0-9]{4})$/;
+    if (regex.test(updatedPhone)) {
+      seterrorPhonePhone(false)
+    }
+    else{
+      seterrorPhonePhone(true)
+    }
   }
   const handleAmmount=e=>{
     const updatedAmmount=e.target.value;
@@ -33,7 +50,7 @@ const Update = () => {
     setBilling(updatedBilling);
   }
     const handleSubmit= e =>{
-        const url= `http://localhost:5000/update-billing/${id}`
+        const url= `https://friendly-parliament-64654.herokuapp.com/update-billing/${id}`
         fetch(url,{
             method:'PUT',
             headers:{
@@ -43,6 +60,14 @@ const Update = () => {
         })
     .then(res=>res.json())
     .then(data=>{
+      if (errorEmail) {
+        alert('Please input a valid email')
+        return
+      }
+      if (errorPhone) {
+        alert('phone number should be 11 character')
+        return
+      }
         if (data.modifiedCount>0) {
             alert('update successfully')
         }
